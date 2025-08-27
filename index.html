@@ -26,11 +26,23 @@
                 <label for="colorPicker">Color del QR:</label>
                 <input type="color" id="colorPicker" value="#000000">
             </div>
-            
             <div class="form-group">
                 <label for="logoSizeSlider">Tamaño del Logo (%):</label>
                 <input type="range" id="logoSizeSlider" min="10" max="50" value="25" disabled>
             </div>
+        </div>
+
+        <div class="controls">
+            <div class="form-group">
+                <label for="logoBorderRadiusSlider">Borde del Logo:</label>
+                <input type="range" id="logoBorderRadiusSlider" min="0" max="50" value="0" disabled>
+            </div>
+        </div>
+        
+        <div class="form-group-inline">
+             <input type="checkbox" id="enableRemoveBgCheckbox" disabled>
+             <label for="enableRemoveBgCheckbox">Quitar fondo del logo</label>
+             <input type="color" id="removeBgColorPicker" value="#FFFFFF" disabled>
         </div>
 
         <button id="generateBtn">Generar y Previsualizar</button>
