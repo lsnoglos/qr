@@ -8,6 +8,7 @@ const ctx = canvas.getContext('2d');
 const colorPicker1 = document.getElementById('colorPicker1');
 const colorPicker2 = document.getElementById('colorPicker2');
 const gradientDirection = document.getElementById('gradientDirection');
+const bgColorPicker = document.getElementById('bgColorPicker');
 
 const logoSizeSlider = document.getElementById('logoSizeSlider');
 const logoBorderRadiusSlider = document.getElementById('logoBorderRadiusSlider');
@@ -18,7 +19,7 @@ let originalLogo = null;
 let processedLogo = null;
 
 generateBtn.addEventListener('click', drawCanvas);
-[colorPicker1, colorPicker2, gradientDirection].forEach(el => el.addEventListener('input', drawCanvas));
+[colorPicker1, colorPicker2, gradientDirection, bgColorPicker].forEach(el => el.addEventListener('input', drawCanvas));
 [logoSizeSlider, logoBorderRadiusSlider, enableRemoveBgCheckbox, removeBgColorPicker].forEach(el => el.addEventListener('input', handleLogoProcessing));
 
 logoInput.addEventListener('change', (event) => {
@@ -57,6 +58,9 @@ async function drawCanvas() {
         return;
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = bgColorPicker.value;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     try {
         const originalQrImage = await loadQrCode(url);

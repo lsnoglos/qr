@@ -17,10 +17,16 @@
                 <input type="url" id="urlInput" placeholder="https://www.google.com" required>
             </div>
             <div class="form-group">
-                <label>Color del QR (Degradado)</label>
+                <label>Colores del QR (Degradado)</label>
                 <div class="controls">
-                    <input type="color" id="colorPicker1" value="#0052cc">
-                    <input type="color" id="colorPicker2" value="#00c6ff">
+                    <input type="color" id="colorPicker1" value="#0052cc" title="Color inicial del degradado">
+                    <input type="color" id="colorPicker2" value="#00c6ff" title="Color final del degradado">
+                </div>
+            </div>
+             <div class="form-group">
+                <label>Fondo y Dirección del Degradado</label>
+                <div class="controls">
+                    <input type="color" id="bgColorPicker" value="#FFFFFF" title="Color de fondo">
                     <select id="gradientDirection">
                         <option value="vertical">Vertical</option>
                         <option value="horizontal">Horizontal</option>
