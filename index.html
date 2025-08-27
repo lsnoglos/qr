@@ -9,51 +9,56 @@
 <body>
 
     <div class="container">
-        <h1>Generador de Códigos QR con Logo</h1>
+        <h1>Generador de QR con Logo</h1>
         
-        <div class="form-group">
-            <label for="urlInput">URL para el QR:</label>
-            <input type="url" id="urlInput" placeholder="https://www.google.com" required>
+        <div class="section">
+            <div class="form-group">
+                <label for="urlInput">URL para el QR:</label>
+                <input type="url" id="urlInput" placeholder="https://www.google.com" required>
+            </div>
+            <div class="form-group">
+                <label>Color del QR (Degradado)</label>
+                <div class="controls">
+                    <input type="color" id="colorPicker1" value="#0052cc">
+                    <input type="color" id="colorPicker2" value="#00c6ff">
+                    <select id="gradientDirection">
+                        <option value="vertical">Vertical</option>
+                        <option value="horizontal">Horizontal</option>
+                        <option value="diagonal">Diagonal</option>
+                        <option value="radial">Radial</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="logoInput">Logo (opcional):</label>
-            <input type="file" id="logoInput" accept="image/png, image/jpeg">
-        </div>
-        
-        <div class="controls">
+        <div class="section">
             <div class="form-group">
-                <label for="colorPicker">Color del QR:</label>
-                <input type="color" id="colorPicker" value="#000000">
+                <label for="logoInput">Logo (opcional):</label>
+                <input type="file" id="logoInput" accept="image/png, image/jpeg">
             </div>
-            <div class="form-group">
-                <label for="logoSizeSlider">Tamaño del Logo (%):</label>
-                <input type="range" id="logoSizeSlider" min="10" max="50" value="25" disabled>
+            <div class="controls">
+                <div class="form-group">
+                    <label for="logoSizeSlider">Tamaño (%):</label>
+                    <input type="range" id="logoSizeSlider" min="10" max="50" value="25" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="logoBorderRadiusSlider">Borde:</label>
+                    <input type="range" id="logoBorderRadiusSlider" min="0" max="50" value="0" disabled>
+                </div>
             </div>
-        </div>
-
-        <div class="controls">
-            <div class="form-group">
-                <label for="logoBorderRadiusSlider">Borde del Logo:</label>
-                <input type="range" id="logoBorderRadiusSlider" min="0" max="50" value="0" disabled>
+            <div class="form-group-inline">
+                 <input type="checkbox" id="enableRemoveBgCheckbox" disabled>
+                 <label for="enableRemoveBgCheckbox">Quitar fondo del logo</label>
+                 <input type="color" id="removeBgColorPicker" value="#FFFFFF" disabled>
             </div>
-        </div>
-        
-        <div class="form-group-inline">
-             <input type="checkbox" id="enableRemoveBgCheckbox" disabled>
-             <label for="enableRemoveBgCheckbox">Quitar fondo del logo</label>
-             <input type="color" id="removeBgColorPicker" value="#FFFFFF" disabled>
         </div>
 
         <button id="generateBtn">Generar y Previsualizar</button>
-        
         <hr>
-
         <h2>Resultado</h2>
         <div class="canvas-container">
             <canvas id="qrCanvas" width="350" height="350"></canvas>
         </div>
-
         <a id="downloadBtn" class="button-download" style="display: none;">Descargar Imagen PNG</a>
     </div>
 

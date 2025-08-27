@@ -1,12 +1,15 @@
 const urlInput = document.getElementById('urlInput');
 const logoInput = document.getElementById('logoInput');
-const colorPicker = document.getElementById('colorPicker');
-const logoSizeSlider = document.getElementById('logoSizeSlider');
 const generateBtn = document.getElementById('generateBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const canvas = document.getElementById('qrCanvas');
 const ctx = canvas.getContext('2d');
 
+const colorPicker1 = document.getElementById('colorPicker1');
+const colorPicker2 = document.getElementById('colorPicker2');
+const gradientDirection = document.getElementById('gradientDirection');
+
+const logoSizeSlider = document.getElementById('logoSizeSlider');
 const logoBorderRadiusSlider = document.getElementById('logoBorderRadiusSlider');
 const enableRemoveBgCheckbox = document.getElementById('enableRemoveBgCheckbox');
 const removeBgColorPicker = document.getElementById('removeBgColorPicker');
@@ -15,11 +18,8 @@ let originalLogo = null;
 let processedLogo = null;
 
 generateBtn.addEventListener('click', drawCanvas);
-colorPicker.addEventListener('input', drawCanvas);
-logoSizeSlider.addEventListener('input', drawCanvas);
-logoBorderRadiusSlider.addEventListener('input', drawCanvas);
-enableRemoveBgCheckbox.addEventListener('change', handleLogoProcessing);
-removeBgColorPicker.addEventListener('input', handleLogoProcessing);
+[colorPicker1, colorPicker2, gradientDirection].forEach(el => el.addEventListener('input', drawCanvas));
+[logoSizeSlider, logoBorderRadiusSlider, enableRemoveBgCheckbox, removeBgColorPicker].forEach(el => el.addEventListener('input', handleLogoProcessing));
 
 logoInput.addEventListener('change', (event) => {
     if (event.target.files && event.target.files[0]) {
@@ -28,27 +28,24 @@ logoInput.addEventListener('change', (event) => {
             originalLogo = new Image();
             originalLogo.onload = () => {
                 [logoSizeSlider, logoBorderRadiusSlider, enableRemoveBgCheckbox, removeBgColorPicker].forEach(el => el.disabled = false);
-                handleLogoProcessing(); 
+                handleLogoProcessing();
             };
             originalLogo.src = e.target.result;
         };
         reader.readAsDataURL(event.target.files[0]);
     } else {
-        originalLogo = null;
-        processedLogo = null;
+        originalLogo = processedLogo = null;
         [logoSizeSlider, logoBorderRadiusSlider, enableRemoveBgCheckbox, removeBgColorPicker].forEach(el => el.disabled = true);
         drawCanvas();
     }
 });
 
 function handleLogoProcessing() {
-    if (!originalLogo) return;
-
-    if (enableRemoveBgCheckbox.checked) {
-        processedLogo = removeColorFromImage(originalLogo, removeBgColorPicker.value);
-    } else {
-        processedLogo = originalLogo;
+    if (!originalLogo) {
+        drawCanvas();
+        return;
     }
+    processedLogo = enableRemoveBgCheckbox.checked ? removeColorFromImage(originalLogo, removeBgColorPicker.value) : originalLogo;
     drawCanvas();
 }
 
@@ -58,12 +55,24 @@ async function drawCanvas() {
         alert('Por favor, introduce una URL.');
         return;
     }
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     try {
         const qrImage = await loadQrCode(url);
-        ctx.drawImage(qrImage, 0, 0, canvas.width, canvas.height);
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        const gradient = createGradient(tempCtx);
+        tempCtx.fillStyle = gradient;
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        tempCtx.globalCompositeOperation = 'destination-in';
+        tempCtx.drawImage(qrImage, 0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.globalCompositeOperation = 'source-over';
+
+        ctx.drawImage(tempCanvas, 0, 0);
 
         if (processedLogo) {
             const logoSizePercent = parseInt(logoSizeSlider.value, 10) / 100;
@@ -82,13 +91,34 @@ async function drawCanvas() {
             ctx.drawImage(processedLogo, logoX, logoY, logoDimension, logoDimension);
             ctx.restore();
         }
-
         prepareDownload();
-
     } catch (error) {
         console.error('Error al generar el QR:', error);
         alert('No se pudo generar el código QR.');
     }
+}
+
+function createGradient(context) {
+    const direction = gradientDirection.value;
+    let gradient;
+    switch (direction) {
+        case 'horizontal':
+            gradient = context.createLinearGradient(0, 0, context.canvas.width, 0);
+            break;
+        case 'diagonal':
+            gradient = context.createLinearGradient(0, 0, context.canvas.width, context.canvas.height);
+            break;
+        case 'radial':
+            gradient = context.createRadialGradient(context.canvas.width / 2, context.canvas.height / 2, 0, context.canvas.width / 2, context.canvas.height / 2, context.canvas.width / 2);
+            break;
+        case 'vertical':
+        default:
+            gradient = context.createLinearGradient(0, 0, 0, context.canvas.height);
+            break;
+    }
+    gradient.addColorStop(0, colorPicker1.value);
+    gradient.addColorStop(1, colorPicker2.value);
+    return gradient;
 }
 
 function loadQrCode(url) {
@@ -97,13 +127,12 @@ function loadQrCode(url) {
         const params = new URLSearchParams({
             data: url,
             size: `${canvas.width}x${canvas.height}`,
-            color: colorPicker.value.substring(1),
+            color: '000000',
             bgcolor: 'FFFFFF',
             qzone: 1,
             margin: 0,
             ecc: 'H'
         });
-        
         const qrCodeImage = new Image();
         qrCodeImage.crossOrigin = "Anonymous";
         qrCodeImage.onload = () => resolve(qrCodeImage);
@@ -134,42 +163,29 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
 
 function hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    } : null;
+    return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
 }
 
 function removeColorFromImage(image, colorToRemoveHex) {
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = image.width;
-    tempCanvas.height = image.height;
+    tempCanvas.width = image.naturalWidth;
+    tempCanvas.height = image.naturalHeight;
     tempCtx.drawImage(image, 0, 0);
-
     const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
     const data = imageData.data;
     const colorToRemove = hexToRgb(colorToRemoveHex);
-    const tolerance = 20;
+    if (!colorToRemove) return image;
+    const tolerance = 25;
 
     for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        const colorDistance = Math.sqrt(
-            Math.pow(r - colorToRemove.r, 2) +
-            Math.pow(g - colorToRemove.g, 2) +
-            Math.pow(b - colorToRemove.b, 2)
-        );
-
+        const colorDistance = Math.sqrt(Math.pow(data[i] - colorToRemove.r, 2) + Math.pow(data[i + 1] - colorToRemove.g, 2) + Math.pow(data[i + 2] - colorToRemove.b, 2));
         if (colorDistance <= tolerance) {
             data[i + 3] = 0;
         }
     }
-
     tempCtx.putImageData(imageData, 0, 0);
-    
-    return tempCanvas;
+    const newImage = new Image();
+    newImage.src = tempCanvas.toDataURL();
+    return newImage;
 }
