@@ -40,12 +40,13 @@ logoInput.addEventListener('change', (event) => {
     }
 });
 
-function handleLogoProcessing() {
+async function handleLogoProcessing() {
     if (!originalLogo) {
+        processedLogo = null;
         drawCanvas();
         return;
     }
-    processedLogo = enableRemoveBgCheckbox.checked ? removeColorFromImage(originalLogo, removeBgColorPicker.value) : originalLogo;
+    processedLogo = enableRemoveBgCheckbox.checked ? await removeColorFromImage(originalLogo, removeBgColorPicker.value) : originalLogo;
     drawCanvas();
 }
 
@@ -58,7 +59,9 @@ async function drawCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     try {
-        const qrImage = await loadQrCode(url);
+        const originalQrImage = await loadQrCode(url);
+        const qrImageWithTransparentBg = await removeColorFromImage(originalQrImage, '#FFFFFF');
+        
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = canvas.width;
         tempCanvas.height = canvas.height;
@@ -69,7 +72,7 @@ async function drawCanvas() {
         tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         
         tempCtx.globalCompositeOperation = 'destination-in';
-        tempCtx.drawImage(qrImage, 0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(qrImageWithTransparentBg, 0, 0, tempCanvas.width, tempCanvas.height);
         tempCtx.globalCompositeOperation = 'source-over';
 
         ctx.drawImage(tempCanvas, 0, 0);
@@ -167,25 +170,35 @@ function hexToRgb(hex) {
 }
 
 function removeColorFromImage(image, colorToRemoveHex) {
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = image.naturalWidth;
-    tempCanvas.height = image.naturalHeight;
-    tempCtx.drawImage(image, 0, 0);
-    const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-    const data = imageData.data;
-    const colorToRemove = hexToRgb(colorToRemoveHex);
-    if (!colorToRemove) return image;
-    const tolerance = 25;
-
-    for (let i = 0; i < data.length; i += 4) {
-        const colorDistance = Math.sqrt(Math.pow(data[i] - colorToRemove.r, 2) + Math.pow(data[i + 1] - colorToRemove.g, 2) + Math.pow(data[i + 2] - colorToRemove.b, 2));
-        if (colorDistance <= tolerance) {
-            data[i + 3] = 0;
+    return new Promise(resolve => {
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = image.naturalWidth;
+        tempCanvas.height = image.naturalHeight;
+        tempCtx.drawImage(image, 0, 0);
+        const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imageData.data;
+        const colorToRemove = hexToRgb(colorToRemoveHex);
+        if (!colorToRemove) {
+            resolve(image);
+            return;
         }
-    }
-    tempCtx.putImageData(imageData, 0, 0);
-    const newImage = new Image();
-    newImage.src = tempCanvas.toDataURL();
-    return newImage;
+        const tolerance = 30;
+
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            
+            if (r > colorToRemove.r - tolerance && r < colorToRemove.r + tolerance &&
+                g > colorToRemove.g - tolerance && g < colorToRemove.g + tolerance &&
+                b > colorToRemove.b - tolerance && b < colorToRemove.b + tolerance) {
+                data[i + 3] = 0;
+            }
+        }
+        tempCtx.putImageData(imageData, 0, 0);
+        const newImage = new Image();
+        newImage.onload = () => resolve(newImage);
+        newImage.src = tempCanvas.toDataURL();
+    });
 }
