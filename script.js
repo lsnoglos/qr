@@ -13,44 +13,31 @@ const transparentBgCheckbox = document.getElementById('transparentBgCheckbox');
 
 const logoSizeSlider = document.getElementById('logoSizeSlider');
 const logoBorderRadiusSlider = document.getElementById('logoBorderRadiusSlider');
-const enableRemoveBgCheckbox = document.getElementById('enableRemoveBgCheckbox');
-const removeBgColorPicker = document.getElementById('removeBgColorPicker');
 
-let originalLogo = null;
-let processedLogo = null;
+let logoImage = null;
 
 generateBtn.addEventListener('click', drawCanvas);
 [colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox].forEach(el => el.addEventListener('input', drawCanvas));
-[logoSizeSlider, logoBorderRadiusSlider, enableRemoveBgCheckbox, removeBgColorPicker].forEach(el => el.addEventListener('input', handleLogoProcessing));
+[logoSizeSlider, logoBorderRadiusSlider].forEach(el => el.addEventListener('input', drawCanvas));
 
 logoInput.addEventListener('change', (event) => {
     if (event.target.files && event.target.files[0]) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            originalLogo = new Image();
-            originalLogo.onload = () => {
-                [logoSizeSlider, logoBorderRadiusSlider, enableRemoveBgCheckbox, removeBgColorPicker].forEach(el => el.disabled = false);
-                handleLogoProcessing();
+            logoImage = new Image();
+            logoImage.onload = () => {
+                [logoSizeSlider, logoBorderRadiusSlider].forEach(el => el.disabled = false);
+                drawCanvas();
             };
-            originalLogo.src = e.target.result;
+            logoImage.src = e.target.result;
         };
         reader.readAsDataURL(event.target.files[0]);
     } else {
-        originalLogo = processedLogo = null;
-        [logoSizeSlider, logoBorderRadiusSlider, enableRemoveBgCheckbox, removeBgColorPicker].forEach(el => el.disabled = true);
+        logoImage = null;
+        [logoSizeSlider, logoBorderRadiusSlider].forEach(el => el.disabled = true);
         drawCanvas();
     }
 });
-
-async function handleLogoProcessing() {
-    if (!originalLogo) {
-        processedLogo = null;
-        drawCanvas();
-        return;
-    }
-    processedLogo = enableRemoveBgCheckbox.checked ? await removeColorFromImage(originalLogo, removeBgColorPicker.value) : originalLogo;
-    drawCanvas();
-}
 
 async function drawCanvas() {
     const url = urlInput.value;
@@ -84,7 +71,7 @@ async function drawCanvas() {
 
         ctx.drawImage(tempCanvas, 0, 0);
 
-        if (processedLogo) {
+        if (logoImage) {
             const logoSizePercent = parseInt(logoSizeSlider.value, 10) / 100;
             const logoDimension = canvas.width * logoSizePercent;
             const logoX = (canvas.width - logoDimension) / 2;
@@ -98,7 +85,7 @@ async function drawCanvas() {
             ctx.save();
             drawRoundedRect(ctx, logoX, logoY, logoDimension, logoDimension, borderRadius);
             ctx.clip();
-            ctx.drawImage(processedLogo, logoX, logoY, logoDimension, logoDimension);
+            ctx.drawImage(logoImage, logoX, logoY, logoDimension, logoDimension);
             ctx.restore();
         }
         prepareDownload();
