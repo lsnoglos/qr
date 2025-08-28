@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de QR con Logo</title>
+    <!-- Librería para generar la estructura del QR -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,8 +19,13 @@
                 <input type="url" id="urlInput" placeholder="https://www.google.com" required>
             </div>
             <div class="form-group">
-                <label>Colores del QR (Degradado)</label>
+                <label>Estilo y Colores del QR</label>
                 <div class="controls">
+                    <select id="qrShape">
+                        <option value="squares">Cuadrados</option>
+                        <option value="dots">Círculos</option>
+                        <option value="diamonds">Diamantes</option>
+                    </select>
                     <input type="color" id="colorPicker1" value="#0052cc" title="Color inicial del degradado">
                     <input type="color" id="colorPicker2" value="#00c6ff" title="Color final del degradado">
                 </div>
@@ -31,7 +38,6 @@
                         <option value="vertical">Vertical</option>
                         <option value="horizontal">Horizontal</option>
                         <option value="diagonal">Diagonal</option>
-                        <option value="radial">Radial</option>
                     </select>
                 </div>
             </div>
