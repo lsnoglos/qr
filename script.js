@@ -60,29 +60,42 @@ function drawCanvas() {
 
         const moduleCount = qr.getModuleCount();
         const moduleSize = canvas.width / (moduleCount + 2);
-
         ctx.fillStyle = createGradient(ctx);
 
+        // Se calculan las dimensiones del logo ANTES de dibujar el QR
+        let logoDimension = 0;
+        let logoX = 0;
+        let logoY = 0;
+        if (logoImage) {
+            const logoSizePercent = parseInt(logoSizeSlider.value, 10) / 100;
+            logoDimension = canvas.width * logoSizePercent;
+            logoX = (canvas.width - logoDimension) / 2;
+            logoY = (canvas.height - logoDimension) / 2;
+        }
+
+        // Se dibujan los módulos del QR
         for (let row = 0; row < moduleCount; row++) {
             for (let col = 0; col < moduleCount; col++) {
                 if (qr.isDark(row, col)) {
                     const x = (col + 1) * moduleSize;
                     const y = (row + 1) * moduleSize;
+
+                    // NUEVA LÓGICA: Se comprueba si el módulo está detrás del logo
+                    if (logoImage && 
+                        x < logoX + logoDimension && x + moduleSize > logoX &&
+                        y < logoY + logoDimension && y + moduleSize > logoY) {
+                        // Si está detrás, no se dibuja para crear un "agujero"
+                        continue;
+                    }
+                    
                     drawModule(ctx, x, y, moduleSize, qrShape.value);
                 }
             }
         }
 
+        // Se dibuja el logo en el espacio vacío, sin fondo blanco
         if (logoImage) {
-            const logoSizePercent = parseInt(logoSizeSlider.value, 10) / 100;
-            const logoDimension = canvas.width * logoSizePercent;
-            const logoX = (canvas.width - logoDimension) / 2;
-            const logoY = (canvas.height - logoDimension) / 2;
             const borderRadius = (logoDimension / 2) * (parseInt(logoBorderRadiusSlider.value, 10) / 50);
-
-            ctx.fillStyle = '#FFFFFF';
-            drawRoundedRect(ctx, logoX - 5, logoY - 5, logoDimension + 10, logoDimension + 10, borderRadius > 0 ? borderRadius + 5 : 0);
-            ctx.fill();
             
             ctx.save();
             drawRoundedRect(ctx, logoX, logoY, logoDimension, logoDimension, borderRadius);
@@ -90,6 +103,7 @@ function drawCanvas() {
             ctx.drawImage(logoImage, logoX, logoY, logoDimension, logoDimension);
             ctx.restore();
         }
+        
         prepareDownload();
     } catch (error) {
         console.error('Error al generar el QR:', error);
@@ -102,7 +116,7 @@ function drawModule(ctx, x, y, size, shape) {
     switch (shape) {
         case 'dots':
             ctx.beginPath();
-            ctx.arc(x + center, y + center, size / 2.1, 0, 2 * Math.PI); // Ligeramente más pequeño para que no se toquen
+            ctx.arc(x + center, y + center, size / 2.1, 0, 2 * Math.PI);
             ctx.fill();
             break;
         case 'diamonds':
