@@ -59,7 +59,7 @@ function drawCanvas() {
         qr.make();
 
         const moduleCount = qr.getModuleCount();
-        const moduleSize = canvas.width / (moduleCount + 2); // +2 para un pequeño margen
+        const moduleSize = canvas.width / (moduleCount + 2);
 
         ctx.fillStyle = createGradient(ctx);
 
@@ -68,12 +68,7 @@ function drawCanvas() {
                 if (qr.isDark(row, col)) {
                     const x = (col + 1) * moduleSize;
                     const y = (row + 1) * moduleSize;
-                    
-                    if (isFinderPattern(row, col, moduleCount)) {
-                        drawFinderPattern(ctx, x, y, moduleSize);
-                    } else {
-                        drawModule(ctx, x, y, moduleSize, qrShape.value);
-                    }
+                    drawModule(ctx, x, y, moduleSize, qrShape.value);
                 }
             }
         }
@@ -107,7 +102,7 @@ function drawModule(ctx, x, y, size, shape) {
     switch (shape) {
         case 'dots':
             ctx.beginPath();
-            ctx.arc(x + center, y + center, size / 2, 0, 2 * Math.PI);
+            ctx.arc(x + center, y + center, size / 2.1, 0, 2 * Math.PI); // Ligeramente más pequeño para que no se toquen
             ctx.fill();
             break;
         case 'diamonds':
@@ -124,18 +119,6 @@ function drawModule(ctx, x, y, size, shape) {
             ctx.fillRect(x, y, size, size);
             break;
     }
-}
-
-function isFinderPattern(row, col, count) {
-    return (
-        (row < 7 && col < 7) ||
-        (row < 7 && col >= count - 7) ||
-        (row >= count - 7 && col < 7)
-    );
-}
-
-function drawFinderPattern(ctx, x, y, size) {
-    ctx.fillRect(x, y, size, size);
 }
 
 function createGradient(context) {
