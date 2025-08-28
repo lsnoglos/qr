@@ -5,6 +5,7 @@ const downloadBtn = document.getElementById('downloadBtn');
 const canvas = document.getElementById('qrCanvas');
 const ctx = canvas.getContext('2d');
 
+const qrShape = document.getElementById('qrShape');
 const colorPicker1 = document.getElementById('colorPicker1');
 const colorPicker2 = document.getElementById('colorPicker2');
 const gradientDirection = document.getElementById('gradientDirection');
@@ -17,7 +18,7 @@ const logoBorderRadiusSlider = document.getElementById('logoBorderRadiusSlider')
 let logoImage = null;
 
 generateBtn.addEventListener('click', drawCanvas);
-[colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox].forEach(el => el.addEventListener('input', drawCanvas));
+[qrShape, colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox].forEach(el => el.addEventListener('input', drawCanvas));
 [logoSizeSlider, logoBorderRadiusSlider].forEach(el => el.addEventListener('input', drawCanvas));
 
 logoInput.addEventListener('change', (event) => {
@@ -39,7 +40,7 @@ logoInput.addEventListener('change', (event) => {
     }
 });
 
-async function drawCanvas() {
+function drawCanvas() {
     const url = urlInput.value;
     if (!url) {
         alert('Por favor, introduce una URL.');
@@ -53,23 +54,29 @@ async function drawCanvas() {
     }
 
     try {
-        const originalQrImage = await loadQrCode(url);
-        const qrImageWithTransparentBg = await removeColorFromImage(originalQrImage, '#FFFFFF');
-        
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = canvas.width;
-        tempCanvas.height = canvas.height;
-        const tempCtx = tempCanvas.getContext('2d');
-        
-        const gradient = createGradient(tempCtx);
-        tempCtx.fillStyle = gradient;
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        
-        tempCtx.globalCompositeOperation = 'destination-in';
-        tempCtx.drawImage(qrImageWithTransparentBg, 0, 0, tempCanvas.width, tempCanvas.height);
-        tempCtx.globalCompositeOperation = 'source-over';
+        const qr = qrcode(0, 'H');
+        qr.addData(url);
+        qr.make();
 
-        ctx.drawImage(tempCanvas, 0, 0);
+        const moduleCount = qr.getModuleCount();
+        const moduleSize = canvas.width / (moduleCount + 2); // +2 para un pequeño margen
+
+        ctx.fillStyle = createGradient(ctx);
+
+        for (let row = 0; row < moduleCount; row++) {
+            for (let col = 0; col < moduleCount; col++) {
+                if (qr.isDark(row, col)) {
+                    const x = (col + 1) * moduleSize;
+                    const y = (row + 1) * moduleSize;
+                    
+                    if (isFinderPattern(row, col, moduleCount)) {
+                        drawFinderPattern(ctx, x, y, moduleSize);
+                    } else {
+                        drawModule(ctx, x, y, moduleSize, qrShape.value);
+                    }
+                }
+            }
+        }
 
         if (logoImage) {
             const logoSizePercent = parseInt(logoSizeSlider.value, 10) / 100;
@@ -91,8 +98,44 @@ async function drawCanvas() {
         prepareDownload();
     } catch (error) {
         console.error('Error al generar el QR:', error);
-        alert('No se pudo generar el código QR.');
+        alert('No se pudo generar el código QR. La URL puede ser demasiado larga.');
     }
+}
+
+function drawModule(ctx, x, y, size, shape) {
+    const center = size / 2;
+    switch (shape) {
+        case 'dots':
+            ctx.beginPath();
+            ctx.arc(x + center, y + center, size / 2, 0, 2 * Math.PI);
+            ctx.fill();
+            break;
+        case 'diamonds':
+            ctx.beginPath();
+            ctx.moveTo(x + center, y);
+            ctx.lineTo(x + size, y + center);
+            ctx.lineTo(x + center, y + size);
+            ctx.lineTo(x, y + center);
+            ctx.closePath();
+            ctx.fill();
+            break;
+        case 'squares':
+        default:
+            ctx.fillRect(x, y, size, size);
+            break;
+    }
+}
+
+function isFinderPattern(row, col, count) {
+    return (
+        (row < 7 && col < 7) ||
+        (row < 7 && col >= count - 7) ||
+        (row >= count - 7 && col < 7)
+    );
+}
+
+function drawFinderPattern(ctx, x, y, size) {
+    ctx.fillRect(x, y, size, size);
 }
 
 function createGradient(context) {
@@ -105,9 +148,6 @@ function createGradient(context) {
         case 'diagonal':
             gradient = context.createLinearGradient(0, 0, context.canvas.width, context.canvas.height);
             break;
-        case 'radial':
-            gradient = context.createRadialGradient(context.canvas.width / 2, context.canvas.height / 2, 0, context.canvas.width / 2, context.canvas.height / 2, context.canvas.width / 2);
-            break;
         case 'vertical':
         default:
             gradient = context.createLinearGradient(0, 0, 0, context.canvas.height);
@@ -116,26 +156,6 @@ function createGradient(context) {
     gradient.addColorStop(0, colorPicker1.value);
     gradient.addColorStop(1, colorPicker2.value);
     return gradient;
-}
-
-function loadQrCode(url) {
-    return new Promise((resolve, reject) => {
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/`;
-        const params = new URLSearchParams({
-            data: url,
-            size: `${canvas.width}x${canvas.height}`,
-            color: '000000',
-            bgcolor: 'FFFFFF',
-            qzone: 1,
-            margin: 0,
-            ecc: 'H'
-        });
-        const qrCodeImage = new Image();
-        qrCodeImage.crossOrigin = "Anonymous";
-        qrCodeImage.onload = () => resolve(qrCodeImage);
-        qrCodeImage.onerror = reject;
-        qrCodeImage.src = `${qrApiUrl}?${params.toString()}`;
-    });
 }
 
 function prepareDownload() {
@@ -156,43 +176,4 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
         ctx.arcTo(x, y, x + width, y, radius);
     }
     ctx.closePath();
-}
-
-function hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
-}
-
-function removeColorFromImage(image, colorToRemoveHex) {
-    return new Promise(resolve => {
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCanvas.width = image.naturalWidth;
-        tempCanvas.height = image.naturalHeight;
-        tempCtx.drawImage(image, 0, 0);
-        const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-        const data = imageData.data;
-        const colorToRemove = hexToRgb(colorToRemoveHex);
-        if (!colorToRemove) {
-            resolve(image);
-            return;
-        }
-        const tolerance = 30;
-
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            
-            if (r > colorToRemove.r - tolerance && r < colorToRemove.r + tolerance &&
-                g > colorToRemove.g - tolerance && g < colorToRemove.g + tolerance &&
-                b > colorToRemove.b - tolerance && b < colorToRemove.b + tolerance) {
-                data[i + 3] = 0;
-            }
-        }
-        tempCtx.putImageData(imageData, 0, 0);
-        const newImage = new Image();
-        newImage.onload = () => resolve(newImage);
-        newImage.src = tempCanvas.toDataURL();
-    });
 }
