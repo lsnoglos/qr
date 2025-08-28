@@ -22,7 +22,16 @@ let logoImage = null;
 const allLogoControls = [logoSizeSlider, logoBorderRadiusSlider, fillLogoBgCheckbox, glowColorPicker, glowIntensitySlider];
 
 generateBtn.addEventListener('click', drawCanvas);
-[qrShape, colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox, ...allLogoControls].forEach(el => el.addEventListener('input', drawCanvas));
+
+const allControls = [
+    qrShape, colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox,
+    ...allLogoControls
+];
+allControls.forEach(el => {
+    if (el) { 
+        el.addEventListener('input', drawCanvas);
+    }
+});
 
 logoInput.addEventListener('change', (event) => {
     if (event.target.files && event.target.files[0]) {
