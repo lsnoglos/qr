@@ -14,12 +14,15 @@ const transparentBgCheckbox = document.getElementById('transparentBgCheckbox');
 
 const logoSizeSlider = document.getElementById('logoSizeSlider');
 const logoBorderRadiusSlider = document.getElementById('logoBorderRadiusSlider');
+const fillLogoBgCheckbox = document.getElementById('fillLogoBgCheckbox');
+const glowColorPicker = document.getElementById('glowColorPicker');
+const glowIntensitySlider = document.getElementById('glowIntensitySlider');
 
 let logoImage = null;
+const allLogoControls = [logoSizeSlider, logoBorderRadiusSlider, fillLogoBgCheckbox, glowColorPicker, glowIntensitySlider];
 
 generateBtn.addEventListener('click', drawCanvas);
-[qrShape, colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox].forEach(el => el.addEventListener('input', drawCanvas));
-[logoSizeSlider, logoBorderRadiusSlider].forEach(el => el.addEventListener('input', drawCanvas));
+[qrShape, colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox, ...allLogoControls].forEach(el => el.addEventListener('input', drawCanvas));
 
 logoInput.addEventListener('change', (event) => {
     if (event.target.files && event.target.files[0]) {
@@ -27,7 +30,7 @@ logoInput.addEventListener('change', (event) => {
         reader.onload = (e) => {
             logoImage = new Image();
             logoImage.onload = () => {
-                [logoSizeSlider, logoBorderRadiusSlider].forEach(el => el.disabled = false);
+                allLogoControls.forEach(el => el.disabled = false);
                 drawCanvas();
             };
             logoImage.src = e.target.result;
@@ -35,7 +38,7 @@ logoInput.addEventListener('change', (event) => {
         reader.readAsDataURL(event.target.files[0]);
     } else {
         logoImage = null;
-        [logoSizeSlider, logoBorderRadiusSlider].forEach(el => el.disabled = true);
+        allLogoControls.forEach(el => el.disabled = true);
         drawCanvas();
     }
 });
@@ -62,40 +65,41 @@ function drawCanvas() {
         const moduleSize = canvas.width / (moduleCount + 2);
         ctx.fillStyle = createGradient(ctx);
 
-        // Se calculan las dimensiones del logo ANTES de dibujar el QR
-        let logoDimension = 0;
-        let logoX = 0;
-        let logoY = 0;
+        let logoDimension = 0, logoX = 0, logoY = 0;
         if (logoImage) {
-            const logoSizePercent = parseInt(logoSizeSlider.value, 10) / 100;
-            logoDimension = canvas.width * logoSizePercent;
+            logoDimension = canvas.width * (parseInt(logoSizeSlider.value, 10) / 100);
             logoX = (canvas.width - logoDimension) / 2;
             logoY = (canvas.height - logoDimension) / 2;
         }
 
-        // Se dibujan los módulos del QR
         for (let row = 0; row < moduleCount; row++) {
             for (let col = 0; col < moduleCount; col++) {
                 if (qr.isDark(row, col)) {
                     const x = (col + 1) * moduleSize;
                     const y = (row + 1) * moduleSize;
-
-                    // NUEVA LÓGICA: Se comprueba si el módulo está detrás del logo
-                    if (logoImage && 
-                        x < logoX + logoDimension && x + moduleSize > logoX &&
-                        y < logoY + logoDimension && y + moduleSize > logoY) {
-                        // Si está detrás, no se dibuja para crear un "agujero"
+                    
+                    if (logoImage && x < logoX + logoDimension && x + moduleSize > logoX && y < logoY + logoDimension && y + moduleSize > logoY) {
                         continue;
                     }
-                    
                     drawModule(ctx, x, y, moduleSize, qrShape.value);
                 }
             }
         }
 
-        // Se dibuja el logo en el espacio vacío, sin fondo blanco
         if (logoImage) {
             const borderRadius = (logoDimension / 2) * (parseInt(logoBorderRadiusSlider.value, 10) / 50);
+            
+            ctx.save();
+            ctx.shadowColor = glowColorPicker.value;
+            ctx.shadowBlur = parseInt(glowIntensitySlider.value, 10);
+            
+            if (fillLogoBgCheckbox.checked) {
+                ctx.fillStyle = bgColorPicker.value;
+                drawRoundedRect(ctx, logoX, logoY, logoDimension, logoDimension, borderRadius);
+                ctx.fill();
+            }
+            
+            ctx.restore();
             
             ctx.save();
             drawRoundedRect(ctx, logoX, logoY, logoDimension, logoDimension, borderRadius);
