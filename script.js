@@ -102,22 +102,20 @@ function drawCanvas() {
         if (logoImage) {
             const borderRadius = (logoDimension / 2) * (parseInt(logoBorderRadiusSlider.value, 10) / 50);
             
-            ctx.save();
-            ctx.shadowColor = glowColorPicker.value;
-            ctx.shadowBlur = parseInt(glowIntensitySlider.value, 10);
-            
             if (fillLogoBgCheckbox.checked) {
                 ctx.fillStyle = bgColorPicker.value;
                 drawRoundedRect(ctx, logoX, logoY, logoDimension, logoDimension, borderRadius);
                 ctx.fill();
             }
             
-            ctx.restore();
-            
             ctx.save();
+            ctx.shadowColor = glowColorPicker.value;
+            ctx.shadowBlur = parseInt(glowIntensitySlider.value, 10);
+            
             drawRoundedRect(ctx, logoX, logoY, logoDimension, logoDimension, borderRadius);
             ctx.clip();
             ctx.drawImage(logoImage, logoX, logoY, logoDimension, logoDimension);
+            
             ctx.restore();
         }
         
