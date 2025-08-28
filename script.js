@@ -28,7 +28,7 @@ const allControls = [
     ...allLogoControls
 ];
 allControls.forEach(el => {
-    if (el) { 
+    if (el) {
         el.addEventListener('input', drawCanvas);
     }
 });
@@ -39,7 +39,9 @@ logoInput.addEventListener('change', (event) => {
         reader.onload = (e) => {
             logoImage = new Image();
             logoImage.onload = () => {
-                allLogoControls.forEach(el => el.disabled = false);
+                allLogoControls.forEach(el => {
+                    if (el) el.disabled = false;
+                });
                 drawCanvas();
             };
             logoImage.src = e.target.result;
@@ -47,7 +49,9 @@ logoInput.addEventListener('change', (event) => {
         reader.readAsDataURL(event.target.files[0]);
     } else {
         logoImage = null;
-        allLogoControls.forEach(el => el.disabled = true);
+        allLogoControls.forEach(el => {
+            if (el) el.disabled = true;
+        });
         drawCanvas();
     }
 });
