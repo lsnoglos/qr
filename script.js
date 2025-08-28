@@ -102,12 +102,14 @@ function drawCanvas() {
         if (logoImage) {
             const borderRadius = (logoDimension / 2) * (parseInt(logoBorderRadiusSlider.value, 10) / 50);
             
+            // Dibuja el fondo del logo solo si la casilla está marcada
             if (fillLogoBgCheckbox.checked) {
                 ctx.fillStyle = bgColorPicker.value;
                 drawRoundedRect(ctx, logoX, logoY, logoDimension, logoDimension, borderRadius);
                 ctx.fill();
             }
             
+            // Aplica el efecto de brillo y dibuja el logo
             ctx.save();
             ctx.shadowColor = glowColorPicker.value;
             ctx.shadowBlur = parseInt(glowIntensitySlider.value, 10);
