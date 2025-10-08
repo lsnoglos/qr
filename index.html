@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de QR con Logo</title>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <div class="container">
@@ -30,7 +34,7 @@
                     <input type="color" id="colorPicker2" value="#303030" title="Color final del degradado">
                 </div>
             </div>
-             <div class="form-group">
+            <div class="form-group">
                 <label>Fondo y Dirección del Degradado</label>
                 <div class="controls">
                     <input type="color" id="bgColorPicker" value="#FFFFFF" title="Color de fondo">
@@ -42,8 +46,8 @@
                 </div>
             </div>
             <div class="form-group-inline">
-                 <input type="checkbox" id="transparentBgCheckbox">
-                 <label for="transparentBgCheckbox">Fondo transparente</label>
+                <input type="checkbox" id="transparentBgCheckbox">
+                <label for="transparentBgCheckbox">Fondo transparente</label>
             </div>
         </div>
 
@@ -63,8 +67,8 @@
                 </div>
             </div>
             <div class="form-group-inline">
-                 <input type="checkbox" id="fillLogoBgCheckbox" disabled>
-                 <label for="fillLogoBgCheckbox">Rellenar fondo del logo</label>
+                <input type="checkbox" id="fillLogoBgCheckbox" disabled>
+                <label for="fillLogoBgCheckbox">Rellenar fondo del logo</label>
             </div>
             <div id="glowOptions" class="form-group">
                 <label>Borde Luminoso</label>
@@ -82,6 +86,28 @@
             <canvas id="qrCanvas" width="1000" height="1000"></canvas>
         </div>
         <a id="downloadBtn" class="button-download" style="display: none;">Descargar Imagen PNG</a>
+    </div>
+
+    <div class="container scanner-section">
+        <hr>
+        <h2>Lector de QR</h2>
+        <button id="startScanBtn">Escanear Código QR</button>
+        <div id="scanResult" class="scan-result" style="display: none;">
+            <h3>Resultado del Escaneo:</h3>
+            <p id="resultText"></p>
+            <a id="resultLink" href="#" target="_blank" class="button-download" style="display: none;">Abrir Enlace</a>
+        </div>
+    </div>
+
+    <div id="scanner-modal" class="scanner-modal" style="display: none;">
+        <div class="scanner-container">
+            <video id="scanner-video" playsinline></video>
+            <div class="scanner-overlay">
+                <p>Apunta la cámara al código QR</p>
+            </div>
+            <button id="closeScanBtn" class="close-button">&times;</button>
+        </div>
+        <canvas id="scanner-canvas" style="display: none;"></canvas>
     </div>
 
     <script src="script.js"></script>
