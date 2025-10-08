@@ -63,7 +63,7 @@ function drawCanvas() {
         return;
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     if (!transparentBgCheckbox.checked) {
         ctx.fillStyle = bgColorPicker.value;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -90,7 +90,7 @@ function drawCanvas() {
                 if (qr.isDark(row, col)) {
                     const x = (col + 1) * moduleSize;
                     const y = (row + 1) * moduleSize;
-                    
+
                     if (logoImage && x < logoX + logoDimension && x + moduleSize > logoX && y < logoY + logoDimension && y + moduleSize > logoY) {
                         continue;
                     }
@@ -101,11 +101,11 @@ function drawCanvas() {
 
         if (logoImage) {
             const borderRadius = (logoDimension / 2) * (parseInt(logoBorderRadiusSlider.value, 10) / 50);
-            
+
             ctx.save();
             ctx.shadowColor = glowColorPicker.value;
             ctx.shadowBlur = parseInt(glowIntensitySlider.value, 10);
-            
+
             if (fillLogoBgCheckbox.checked) {
                 ctx.fillStyle = bgColorPicker.value;
                 drawRoundedRect(ctx, logoX, logoY, logoDimension, logoDimension, borderRadius);
@@ -123,7 +123,7 @@ function drawCanvas() {
             ctx.drawImage(logoImage, logoX, logoY, logoDimension, logoDimension);
             ctx.restore();
         }
-        
+
         prepareDownload();
     } catch (error) {
         console.error('Error al generar el QR:', error);
@@ -193,4 +193,139 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
         ctx.arcTo(x, y, x + width, y, radius);
     }
     ctx.closePath();
+}
+
+
+//scan
+
+const startScanBtn = document.getElementById('startScanBtn');
+const closeScanBtn = document.getElementById('closeScanBtn');
+const scannerModal = document.getElementById('scanner-modal');
+const video = document.getElementById('scanner-video');
+const scannerCanvas = document.getElementById('scanner-canvas');
+const scannerCtx = scannerCanvas.getContext('2d');
+
+const scanResultDiv = document.getElementById('scanResult');
+const resultText = document.getElementById('resultText');
+const resultLink = document.getElementById('resultLink');
+
+let stream = null;
+let animationFrameId = null;
+
+startScanBtn.addEventListener('click', () => {
+    scannerModal.style.display = 'flex';
+    startCamera();
+});
+
+closeScanBtn.addEventListener('click', stopCamera);
+
+function startCamera() {
+    const constraints = { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } };
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(function (cameraStream) {
+            stream = cameraStream;
+            video.srcObject = stream;
+            video.setAttribute('playsinline', true);
+            video.play();
+            frameCounter = 0; // Reiniciamos el contador
+            animationFrameId = requestAnimationFrame(tick);
+        })
+        .catch(function (err) {
+            console.error("Error al acceder a la cámara en alta resolución: ", err);
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(function (cameraStream) {
+                    stream = cameraStream;
+                    video.srcObject = cameraStream;
+                    video.setAttribute('playsinline', true);
+                    video.play();
+                    frameCounter = 0; // Reiniciamos el contador
+                    animationFrameId = requestAnimationFrame(tick);
+                }).catch(function (err) {
+                    alert("No se pudo acceder a la cámara. Asegúrate de dar los permisos necesarios y usar HTTPS.");
+                    scannerModal.style.display = 'none';
+                });
+        });
+}
+
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+    scannerModal.style.display = 'none';
+    cancelAnimationFrame(animationFrameId);
+}
+
+function applyAdaptiveThreshold(imageData, width, height) {
+    const grayData = new Uint8ClampedArray(width * height);
+    const integralImage = new Uint32Array(width * height);
+    const outputData = new Uint8ClampedArray(imageData.data.length);
+    for (let i = 0, j = 0; i < imageData.data.length; i += 4, j++) {
+        const brightness = 0.299 * imageData.data[i] + 0.587 * imageData.data[i + 1] + 0.114 * imageData.data[i + 2];
+        grayData[j] = brightness;
+    }
+    for (let y = 0; y < height; y++) {
+        let sum = 0;
+        for (let x = 0; x < width; x++) {
+            const index = y * width + x;
+            sum += grayData[index];
+            if (y === 0) {
+                integralImage[index] = sum;
+            } else {
+                integralImage[index] = integralImage[index - width] + sum;
+            }
+        }
+    }
+    const s = Math.floor(width / 16);
+    const t = 0.15;
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const index = y * width + x;
+            const x1 = Math.max(0, x - s);
+            const y1 = Math.max(0, y - s);
+            const x2 = Math.min(width - 1, x + s);
+            const y2 = Math.min(height - 1, y + s);
+            const count = (x2 - x1) * (y2 - y1);
+            const sum = integralImage[y2 * width + x2] - (x1 > 0 ? integralImage[y2 * width + x1 - 1] : 0) - (y1 > 0 ? integralImage[(y1 - 1) * width + x2] : 0) + (x1 > 0 && y1 > 0 ? integralImage[(y1 - 1) * width + x1 - 1] : 0);
+            const color = grayData[index] * count < sum * (1.0 - t) ? 0 : 255;
+            const outputIndex = index * 4;
+            outputData[outputIndex] = outputData[outputIndex + 1] = outputData[outputIndex + 2] = color;
+            outputData[outputIndex + 3] = 255;
+        }
+    }
+    return new ImageData(outputData, width, height);
+}
+
+function tick() {
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        frameCounter++;
+        if (frameCounter % 4 === 0) {
+            scannerCanvas.height = video.videoHeight;
+            scannerCanvas.width = video.videoWidth;
+            scannerCtx.drawImage(video, 0, 0, scannerCanvas.width, scannerCanvas.height);
+            let imageData = scannerCtx.getImageData(0, 0, scannerCanvas.width, scannerCanvas.height);
+            imageData = applyAdaptiveThreshold(imageData, scannerCanvas.width, scannerCanvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert",
+            });
+
+            if (code) {
+                handleQRCode(code);
+                return;
+            }
+        }
+    }
+    animationFrameId = requestAnimationFrame(tick);
+}
+
+function handleQRCode(code) {
+    console.log("Código QR encontrado:", code.data);
+    stopCamera();
+    scanResultDiv.style.display = 'block';
+    resultText.textContent = code.data;
+    if (code.data.startsWith('http://') || code.data.startsWith('https://')) {
+        resultLink.href = code.data;
+        resultLink.style.display = 'inline-block';
+    } else {
+        resultLink.style.display = 'none';
+    }
 }
