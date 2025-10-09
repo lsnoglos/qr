@@ -5,9 +5,6 @@ body {
     margin: 0;
     padding: 20px;
     display: block;
-    /* justify-content: center;
-    align-items: center;
-    min-height: 100vh; */
 }
 
 .container {
@@ -138,7 +135,6 @@ hr {
 canvas {
     max-width: 100%;
     height: auto;
-    
     border: 1px solid #c1c7d0;
     border-radius: 4px;
 }
@@ -147,7 +143,6 @@ canvas {
     margin-top: 15px;
 }
 
-/*  ***  */
 
 .scanner-section {
     text-align: center;
@@ -175,29 +170,107 @@ canvas {
     align-items: center;
     z-index: 1000;
 }
+
 .scanner-container {
     position: relative;
-    width: 90%;
-    max-width: 600px;
+    width: 80vw;
+    max-width: 450px;
+    height: 80vh;
+    max-height: 450px;
     background: #333;
     border-radius: 8px;
     overflow: hidden;
 }
+
+.scanner-container::before {
+    content: '';
+    position: absolute;
+    top: 15%; 
+    left: 15%;
+    width: 70%;
+    height: 70%;
+    border: 4px solid #fff;
+    border-color: transparent;
+    pointer-events: none;
+    z-index: 10;
+    
+    border-top-color: #00FF00;
+    border-left-color: #00FF00;
+    border-radius: 10px;
+    
+    border-width: 5px; 
+    border-style: solid;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+}
+.scanner-container::after {
+    content: '';
+    position: absolute;
+    top: 15%; 
+    left: 15%;
+    width: 70%;
+    height: 70%;
+    border: 4px solid #fff;
+    border-color: transparent; 
+    z-index: 10;
+    border-width: 5px;
+    border-style: solid;
+    
+    border-top-color: transparent;
+    border-left-color: transparent;
+    border-right-color: #00FF00;
+    border-bottom-color: #00FF00;
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+
 #scanner-video {
     width: 100%;
+    height: 100%;
     display: block;
+    object-fit: cover;
 }
+
 .scanner-overlay {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 250px;
-    height: 250px;
-    border: 2px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
-    color: transparent;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    clip-path: inset(15% 15% 15% 15%); 
+    
+    color: white; 
+    font-size: 1.1rem;
+    padding-top: 5%;
+    text-align: center;
+    pointer-events: none; 
+    box-sizing: border-box;
 }
+
+.scan-line {
+    position: absolute;
+    top: 15%; 
+    width: 70%;
+    height: 3px;
+    background-color: #00FF00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
+    z-index: 20;
+    animation: scan 2s linear infinite;
+    left: 15%;
+}
+
+@keyframes scan {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(70vh); 
+    }
+}
+
+
 .close-button {
     position: absolute;
     top: 10px;
@@ -208,6 +281,7 @@ canvas {
     font-size: 2.5rem;
     cursor: pointer;
     text-shadow: 0 0 5px black;
+    z-index: 100;
 }
 
 .debug-canvas {
