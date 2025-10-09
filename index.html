@@ -7,7 +7,7 @@
     <title>Generador de QR con Logo</title>
     <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -104,12 +104,15 @@
             <video id="scanner-video" playsinline></video>
             <div class="scanner-overlay">
                 <p>Apunta la cámara al código QR</p>
+                <div class="scan-line"></div> 
             </div>
             <button id="closeScanBtn" class="close-button">&times;</button>
         </div>
         <canvas id="scanner-canvas" style="display: none;"></canvas>
     </div>
 
-    <script src="script.js"></script>
+    <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+
+    <script src="script.js"></script> 
 </body>
 </html>
