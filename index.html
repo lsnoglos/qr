@@ -14,8 +14,33 @@
 <body>
 
     <div class="container">
-        <h1>Generador de QR con Logo</h1>
+        <h1>Generador y Lector de QR</h1>
         <h5>By Noel López</h5>
+
+
+ <div class="container scanner-section">
+        <hr>
+        <h2>Lector de QR</h2>
+        <button id="startScanBtn">Escanear Código QR</button>
+        <div id="scanResult" class="scan-result" style="display: none;">
+            <h3>Resultado del Escaneo:</h3>
+            <p id="resultText"></p>
+            <a id="resultLink" href="#" target="_blank" class="button-download" style="display: none;">Abrir Enlace</a>
+        </div>
+    </div>
+
+    <div id="scanner-modal" class="scanner-modal" style="display: none;">
+        <div class="scanner-container">
+            <video id="scanner-video" playsinline></video>
+            <div class="scanner-overlay">
+                <p>Apunta la cámara al código QR</p>
+                <div class="scan-line"></div> 
+            </div>
+            <button id="closeScanBtn" class="close-button">&times;</button>
+        </div>
+        <canvas id="scanner-canvas" style="display: none;"></canvas>
+    </div>
+
 
         <div class="section">
             <div class="form-group">
@@ -86,29 +111,6 @@
             <canvas id="qrCanvas" width="1000" height="1000"></canvas>
         </div>
         <a id="downloadBtn" class="button-download" style="display: none;">Descargar Imagen PNG</a>
-    </div>
-
-    <div class="container scanner-section">
-        <hr>
-        <h2>Lector de QR</h2>
-        <button id="startScanBtn">Escanear Código QR</button>
-        <div id="scanResult" class="scan-result" style="display: none;">
-            <h3>Resultado del Escaneo:</h3>
-            <p id="resultText"></p>
-            <a id="resultLink" href="#" target="_blank" class="button-download" style="display: none;">Abrir Enlace</a>
-        </div>
-    </div>
-
-    <div id="scanner-modal" class="scanner-modal" style="display: none;">
-        <div class="scanner-container">
-            <video id="scanner-video" playsinline></video>
-            <div class="scanner-overlay">
-                <p>Apunta la cámara al código QR</p>
-                <div class="scan-line"></div> 
-            </div>
-            <button id="closeScanBtn" class="close-button">&times;</button>
-        </div>
-        <canvas id="scanner-canvas" style="display: none;"></canvas>
     </div>
 
     <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
