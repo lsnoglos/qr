@@ -58,6 +58,7 @@ label {
 }
 
 input[type="url"],
+input[type="text"],
 input[type="file"],
 select {
     width: 100%;
@@ -68,7 +69,9 @@ select {
     font-size: 14px;
 }
 
-input[type="url"]:focus, select:focus {
+input[type="url"]:focus,
+input[type="text"]:focus,
+select:focus {
     border-color: #4c9aff;
     outline: none;
 }
