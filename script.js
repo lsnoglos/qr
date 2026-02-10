@@ -27,7 +27,7 @@ const allLogoControls = [logoSizeSlider, logoBorderRadiusSlider, fillLogoBgCheck
 generateBtn.addEventListener('click', drawCanvas);
 
 const allControls = [
-    qrShape, colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox, titleInput,
+    qrShape, colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox,
     ...allLogoControls
 ];
 allControls.forEach(el => {
@@ -139,12 +139,21 @@ function drawCanvas() {
             ctx.restore();
         }
 
-        prepareDownload();
+        updateDownloadLink();
     } catch (error) {
         console.error('Error al generar el QR:', error);
         alert('No se pudo generar el código QR. La URL puede ser demasiado larga.');
     }
 }
+
+downloadBtn.addEventListener('click', () => {
+    if (titleInput.value.trim()) {
+        prepareDownload();
+        return;
+    }
+
+    updateDownloadLink();
+});
 
 function drawModule(ctx, x, y, size, shape) {
     const center = size / 2;
@@ -196,14 +205,18 @@ function createGradient(context) {
     return gradient;
 }
 
+function updateDownloadLink() {
+    downloadBtn.href = canvas.toDataURL('image/png');
+    downloadBtn.download = 'codigo-qr-personalizado.png';
+    downloadBtn.textContent = 'Descargar Imagen PNG';
+    downloadBtn.style.display = 'inline-block';
+}
+
 function prepareDownload() {
     const headerText = titleInput.value.trim();
 
     if (!headerText) {
-        downloadBtn.href = canvas.toDataURL('image/png');
-        downloadBtn.download = 'codigo-qr-personalizado.png';
-        downloadBtn.textContent = 'Descargar Imagen PNG';
-        downloadBtn.style.display = 'inline-block';
+        updateDownloadLink();
         return;
     }
 
