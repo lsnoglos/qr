@@ -2,6 +2,7 @@
 
 const urlInput = document.getElementById('urlInput');
 const logoInput = document.getElementById('logoInput');
+const titleInput = document.getElementById('titleInput');
 const generateBtn = document.getElementById('generateBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const canvas = document.getElementById('qrCanvas');
@@ -26,7 +27,7 @@ const allLogoControls = [logoSizeSlider, logoBorderRadiusSlider, fillLogoBgCheck
 generateBtn.addEventListener('click', drawCanvas);
 
 const allControls = [
-    qrShape, colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox,
+    qrShape, colorPicker1, colorPicker2, gradientDirection, bgColorPicker, transparentBgCheckbox, titleInput,
     ...allLogoControls
 ];
 allControls.forEach(el => {
@@ -196,8 +197,50 @@ function createGradient(context) {
 }
 
 function prepareDownload() {
-    downloadBtn.href = canvas.toDataURL('image/png');
-    downloadBtn.download = 'codigo-qr-personalizado.png';
+    const headerText = titleInput.value.trim();
+
+    if (!headerText) {
+        downloadBtn.href = canvas.toDataURL('image/png');
+        downloadBtn.download = 'codigo-qr-personalizado.png';
+        downloadBtn.textContent = 'Descargar Imagen PNG';
+        downloadBtn.style.display = 'inline-block';
+        return;
+    }
+
+    const letterCanvas = document.createElement('canvas');
+    letterCanvas.width = 2550;
+    letterCanvas.height = 3300;
+    const letterCtx = letterCanvas.getContext('2d');
+
+    letterCtx.fillStyle = '#FFFFFF';
+    letterCtx.fillRect(0, 0, letterCanvas.width, letterCanvas.height);
+
+    const margin = 180;
+    const headingAreaHeight = 420;
+    const qrAreaTop = headingAreaHeight + 120;
+    const availableSize = Math.min(letterCanvas.width - (margin * 2), letterCanvas.height - qrAreaTop - margin);
+
+    letterCtx.fillStyle = '#091e42';
+    letterCtx.textAlign = 'center';
+    letterCtx.textBaseline = 'middle';
+    letterCtx.font = 'bold 130px Arial';
+
+    const maxTextWidth = letterCanvas.width - (margin * 2);
+    const normalizedText = headerText.length > 80 ? `${headerText.slice(0, 77)}...` : headerText;
+    let fontSize = 130;
+    while (fontSize > 65 && letterCtx.measureText(normalizedText).width > maxTextWidth) {
+        fontSize -= 5;
+        letterCtx.font = `bold ${fontSize}px Arial`;
+    }
+
+    letterCtx.fillText(normalizedText, letterCanvas.width / 2, headingAreaHeight / 2);
+
+    const qrX = (letterCanvas.width - availableSize) / 2;
+    letterCtx.drawImage(canvas, qrX, qrAreaTop, availableSize, availableSize);
+
+    downloadBtn.href = letterCanvas.toDataURL('image/png');
+    downloadBtn.download = 'codigo-qr-carta.png';
+    downloadBtn.textContent = 'Descargar Hoja Carta PNG';
     downloadBtn.style.display = 'inline-block';
 }
 
