@@ -12,22 +12,23 @@
 </head>
 
 <body>
-
     <div class="container">
-        <h1>Generador y Lector de QR</h1>
-        <h5>By Noel López</h5>
+        <header class="app-header">
+            <h1>Creador de QR</h1>
+            <p>Rápido, limpio y listo para usar.</p>
+        </header>
 
-
- <div class="section">
-        <hr>
-        <h2>Lector de QR</h2>
-        <button id="startScanBtn">Escanear Código QR</button>
-        <div id="scanResult" class="scan-result" style="display: none;">
-            <h3>Resultado del Escaneo:</h3>
-            <p id="resultText"></p>
-            <a id="resultLink" href="#" target="_blank" class="button-download" style="display: none;">Abrir Enlace</a>
-        </div>
-    </div>
+        <details class="collapse-panel">
+            <summary>Escanear QR</summary>
+            <div class="section section-inner">
+                <button id="startScanBtn">Escanear Código QR</button>
+                <div id="scanResult" class="scan-result" style="display: none;">
+                    <h3>Resultado del Escaneo:</h3>
+                    <p id="resultText"></p>
+                    <a id="resultLink" href="#" target="_blank" class="button-download" style="display: none;">Abrir Enlace</a>
+                </div>
+            </div>
+        </details>
 
     <div id="scanner-modal" class="scanner-modal" style="display: none;">
         <div class="scanner-container">
@@ -42,84 +43,84 @@
     </div>
 
 
-        <div class="section">
-
-   <hr>
-
-        <h2>Creador de QR</h2>
+        <div class="section section-main">
+            <h2>Genera tu QR</h2>
 
             <div class="form-group">
-                <label for="urlInput">URL para el QR:</label>
+                <label for="urlInput">Introduce la URL para crear el QR</label>
                 <input type="url" id="urlInput" placeholder="https://www.google.com" required>
             </div>
-            <div class="form-group">
-                <label for="titleInput">Descripción de Código QR:</label>
-                <input type="text" id="titleInput" placeholder="Descripción QR" maxlength="80">
-            </div>
-            <div class="form-group">
-                <label>Estilo y Colores del QR</label>
-                <div class="controls">
-                    <select id="qrShape">
-                        <option value="squares">Cuadrados</option>
-                        <option value="dots">Círculos</option>
-                        <option selected value="diamonds">Diamantes</option>
-                    </select>
-                    <input type="color" id="colorPicker1" value="#0052cc" title="Color inicial del degradado">
-                    <input type="color" id="colorPicker2" value="#303030" title="Color final del degradado">
+            <button id="generateBtn">Generar QR</button>
+            <div class="preview-block">
+                <h3>Vista previa</h3>
+                <div class="canvas-container">
+                    <canvas id="qrCanvas" width="1000" height="1000"></canvas>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Fondo y Dirección del Degradado</label>
-                <div class="controls">
-                    <input type="color" id="bgColorPicker" value="#FFFFFF" title="Color de fondo">
-                    <select id="gradientDirection">
-                        <option value="vertical">Vertical</option>
-                        <option selected value="horizontal">Horizontal</option>
-                        <option value="diagonal">Diagonal</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group-inline">
-                <input type="checkbox" id="transparentBgCheckbox">
-                <label for="transparentBgCheckbox">Fondo transparente</label>
-            </div>
+            <a id="downloadBtn" class="button-download" style="display: none;">Descargar Imagen PNG</a>
         </div>
 
-        <div class="section">
-            <div class="form-group">
-                <label for="logoInput">Logo (opcional):</label>
-                <input type="file" id="logoInput" accept="image/png, image/jpeg">
-            </div>
-            <div class="controls">
+        <details class="collapse-panel">
+            <summary>Personalizar QR</summary>
+            <div class="section section-inner">
                 <div class="form-group">
-                    <label for="logoSizeSlider">Tamaño (%):</label>
-                    <input type="range" id="logoSizeSlider" min="10" max="50" value="35" disabled>
+                    <label for="titleInput">Título del QR</label>
+                    <input type="text" id="titleInput" placeholder="Descripción QR" maxlength="80">
                 </div>
                 <div class="form-group">
-                    <label for="logoBorderRadiusSlider">Borde:</label>
-                    <input type="range" id="logoBorderRadiusSlider" min="0" max="50" value="25" disabled>
+                    <label>Estilo y colores del QR</label>
+                    <div class="controls">
+                        <select id="qrShape">
+                            <option value="squares">Cuadrados</option>
+                            <option value="dots">Círculos</option>
+                            <option selected value="diamonds">Diamantes</option>
+                        </select>
+                        <input type="color" id="colorPicker1" value="#0052cc" title="Color inicial del degradado">
+                        <input type="color" id="colorPicker2" value="#303030" title="Color final del degradado">
+                    </div>
                 </div>
-            </div>
-            <div class="form-group-inline">
-                <input type="checkbox" id="fillLogoBgCheckbox" disabled>
-                <label for="fillLogoBgCheckbox">Rellenar fondo del logo</label>
-            </div>
-            <div id="glowOptions" class="form-group">
-                <label>Borde Luminoso</label>
+                <div class="form-group">
+                    <label>Fondo y dirección del degradado</label>
+                    <div class="controls">
+                        <input type="color" id="bgColorPicker" value="#FFFFFF" title="Color de fondo">
+                        <select id="gradientDirection">
+                            <option value="vertical">Vertical</option>
+                            <option selected value="horizontal">Horizontal</option>
+                            <option value="diagonal">Diagonal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group-inline">
+                    <input type="checkbox" id="transparentBgCheckbox">
+                    <label for="transparentBgCheckbox">Fondo transparente</label>
+                </div>
+                <div class="form-group">
+                    <label for="logoInput">Logo (opcional)</label>
+                    <input type="file" id="logoInput" accept="image/png, image/jpeg">
+                </div>
                 <div class="controls">
-                    <input type="color" id="glowColorPicker" value="#FFFFFF" disabled>
-                    <input type="range" id="glowIntensitySlider" min="0" max="40" value="10" disabled>
+                    <div class="form-group">
+                        <label for="logoSizeSlider">Tamaño (%)</label>
+                        <input type="range" id="logoSizeSlider" min="10" max="50" value="35" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="logoBorderRadiusSlider">Borde</label>
+                        <input type="range" id="logoBorderRadiusSlider" min="0" max="50" value="25" disabled>
+                    </div>
+                </div>
+                <div class="form-group-inline">
+                    <input type="checkbox" id="fillLogoBgCheckbox" disabled>
+                    <label for="fillLogoBgCheckbox">Rellenar fondo del logo</label>
+                </div>
+                <div id="glowOptions" class="form-group">
+                    <label>Borde luminoso</label>
+                    <div class="controls">
+                        <input type="color" id="glowColorPicker" value="#FFFFFF" disabled>
+                        <input type="range" id="glowIntensitySlider" min="0" max="40" value="10" disabled>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <button id="generateBtn">Generar y Previsualizar</button>
-        <hr>
-        <h2>Resultado</h2>
-        <div class="canvas-container">
-            <canvas id="qrCanvas" width="1000" height="1000"></canvas>
-        </div>
-        <a id="downloadBtn" class="button-download" style="display: none;">Descargar Imagen PNG</a>
+        </details>
     </div>
 
     <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
